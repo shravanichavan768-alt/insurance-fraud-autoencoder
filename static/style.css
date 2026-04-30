@@ -1,0 +1,163 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #0f0f1a;
+    color: white;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 750px;
+    margin: auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.header h1 {
+    font-size: 32px;
+    color: #3498db;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+
+input {
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid #2a2a3e;
+    background: #1a1a2e;
+    color: white;
+    font-size: 14px;
+    transition: border 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+button:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+/* Result Section */
+#result {
+    margin-top: 30px;
+}
+
+.result {
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.fraud {
+    background: #e74c3c22;
+    border: 1px solid #e74c3c;
+}
+
+.legit {
+    background: #2ecc7122;
+    border: 1px solid #2ecc71;
+}
+
+.result h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+.result .recon {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.models {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.model-card {
+    padding: 14px;
+    border-radius: 10px;
+    background: #1a1a2e;
+    border: 1px solid #2a2a3e;
+}
+
+.model-card p {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+
+.model-card span {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.model-card span.fraud-text {
+    color: #e74c3c;
+}
+
+.model-card span.legit-text {
+    color: #2ecc71;
+}
+
+.loading {
+    text-align: center;
+    color: #aaa;
+    padding: 20px;
+    font-size: 14px;
+}
