@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Fraud Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Insurance Fraud Detection</h1>
+        <p>AI-powered detection using Autoencoder, Isolation Forest & XGBoost</p>
+    </div>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Patient Age</label>
+            <input type="number" id="patient_age" value="45">
+        </div>
+        <div class="form-group">
+            <label>Claim Amount (₹)</label>
+            <input type="number" id="claim_amount" value="50000">
+        </div>
+        <div class="form-group">
+            <label>Number of Procedures</label>
+            <input type="number" id="num_procedures" value="3">
+        </div>
+        <div class="form-group">
+            <label>Hospital Stay Days</label>
+            <input type="number" id="hospital_stay_days" value="4">
+        </div>
+        <div class="form-group">
+            <label>Claims Last Year</label>
+            <input type="number" id="num_claims_last_year" value="1">
+        </div>
+        <div class="form-group">
+            <label>Doctor Experience (Years)</label>
+            <input type="number" id="doctor_experience_years" value="10">
+        </div>
+        <div class="form-group">
+            <label>Is Duplicate Claim? (0/1)</label>
+            <input type="number" id="is_duplicate_claim" value="0">
+        </div>
+        <div class="form-group">
+            <label>Approved Quickly? (0/1)</label>
+            <input type="number" id="claim_approved_quickly" value="0">
+        </div>
+        <div class="form-group">
+            <label>Number of Diagnoses</label>
+            <input type="number" id="num_diagnoses" value="2">
+        </div>
+        <div class="form-group">
+            <label>Patient Income Level (1-5)</label>
+            <input type="number" id="patient_income_level" value="3">
+        </div>
+        <div class="form-group">
+            <label>Policy Age (Months)</label>
+            <input type="number" id="policy_age_months" value="24">
+        </div>
+    </div>
+
+    <button onclick="predict()"> Detect Fraud</button>
+
+    <div id="result"></div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
