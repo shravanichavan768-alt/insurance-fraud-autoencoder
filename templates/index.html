@@ -3,51 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insurance Fraud Detection Portal</title>
+    <title>FraudGuard AI — Insurance Fraud Detection</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <div class="portal">
 
-    
-    <div class="sidebar">
-        <div class="logo">
-            <span>🛡️</span>
-            <h2>FraudGuard AI</h2>
-        </div>
-        <p class="sidebar-sub">Insurance Fraud Detection System</p>
-        <div class="sidebar-stats">
-            <div class="stat-box">
-                <span class="stat-num">50,000</span>
-                <span class="stat-label">Claims Trained On</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-num">96.1%</span>
-                <span class="stat-label">Model Accuracy</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-num">3</span>
-                <span class="stat-label">AI Models Used</span>
-            </div>
-        </div>
-        <div class="model-badges">
-            <span class="badge"> Autoencoder</span>
-            <span class="badge"> Isolation Forest</span>
-            <span class="badge"> XGBoost</span>
+    <!-- Top Navbar -->
+    <div class="navbar">
+        <div class="nav-logo">🛡️ FraudGuard AI</div>
+        <div class="nav-stats">
+            <span> Autoencoder</span>
+            <span> Isolation Forest</span>
+            <span> XGBoost</span>
+            <span class="nav-accuracy">96.1% Accuracy</span>
         </div>
     </div>
 
-   
     <div class="main">
-        <div class="topbar">
-            <h1>New Claim Assessment</h1>
-            <span class="agent-tag"> Agent Portal</span>
-        </div>
 
+        <!-- Form Card -->
         <div class="form-card">
-            <h3> Patient & Claim Information</h3>
-            <p class="form-sub">Fill in the claim details below. Our AI system will automatically analyze fraud risk.</p>
+            <h3> New Claim Assessment</h3>
+            <p class="form-sub">Fill in the claim details. Our AI will automatically analyze fraud risk.</p>
 
             <div class="form-grid">
                 <div class="form-group full">
@@ -56,7 +36,7 @@
                 </div>
                 <div class="form-group">
                     <label>Patient Age</label>
-                    <input type="number" id="patient_age" placeholder="e.g. 45" min="1" max="120">
+                    <input type="number" id="patient_age" placeholder="e.g. 45">
                 </div>
                 <div class="form-group">
                     <label>Policy Number</label>
@@ -84,7 +64,6 @@
                 </div>
             </div>
 
-            
             <div class="sample-btns">
                 <button class="sample-btn legit-btn" onclick="fillSample('legit')">
                     Fill Sample Legitimate Claim
@@ -99,8 +78,26 @@
             </button>
         </div>
 
-        
+        <!-- Result -->
         <div id="result"></div>
+
+        <!-- Claims Log -->
+        <div class="log-card" id="log-card" style="display:none">
+            <h3> Recent Claims Log</h3>
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Hospital</th>
+                        <th>Amount (₹)</th>
+                        <th>Risk Score</th>
+                        <th>Verdict</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="log-body"></tbody>
+            </table>
+        </div>
 
     </div>
 </div>
