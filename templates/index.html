@@ -18,63 +18,45 @@
             <span> Autoencoder</span>
             <span> Isolation Forest</span>
             <span> XGBoost</span>
-            <span class="nav-accuracy">96.1% Accuracy</span>
+            <div class="nav-pills">
+                <span class="pill blue">{{ stats.total | int }} Total Claims</span>
+                <span class="pill red">{{ stats.fraud | int }} Fraud</span>
+                <span class="pill green">{{ stats.legit | int }} Legit</span>
+            </div>
         </div>
     </div>
 
     <div class="main">
 
-        <!-- Form Card -->
+        <!-- Lookup Card -->
         <div class="form-card">
-            <h3> New Claim Assessment</h3>
-            <p class="form-sub">Fill in the claim details. Our AI will automatically analyze fraud risk.</p>
+            <h3> Claim Lookup & Fraud Analysis</h3>
+            <p class="form-sub">Enter a Claim ID to pull data from our database and analyze for fraud.</p>
 
-            <div class="form-grid">
-                <div class="form-group full">
-                    <label>Patient Full Name</label>
-                    <input type="text" id="patient_name" placeholder="e.g. Rajesh Sharma">
-                </div>
-                <div class="form-group">
-                    <label>Patient Age</label>
-                    <input type="number" id="patient_age" placeholder="e.g. 45">
-                </div>
-                <div class="form-group">
-                    <label>Policy Number</label>
-                    <input type="text" id="policy_number" placeholder="e.g. LIC-2024-789">
-                </div>
-                <div class="form-group full">
-                    <label>Hospital Name</label>
-                    <input type="text" id="hospital_name" placeholder="e.g. Apollo Hospital, Mumbai">
-                </div>
-                <div class="form-group full">
-                    <label>Primary Diagnosis</label>
-                    <input type="text" id="diagnosis" placeholder="e.g. Knee Replacement Surgery">
-                </div>
-                <div class="form-group">
-                    <label>Claim Amount (₹)</label>
-                    <input type="number" id="claim_amount" placeholder="e.g. 450000">
-                </div>
-                <div class="form-group">
-                    <label>Days Hospitalized</label>
-                    <input type="number" id="hospital_stay_days" placeholder="e.g. 5">
-                </div>
-                <div class="form-group">
-                    <label>Treatment Date</label>
-                    <input type="date" id="treatment_date">
-                </div>
+            <div class="lookup-row">
+                <input type="number" id="claim_id" 
+                       placeholder="Enter Claim ID (e.g. 1001, 5432, 33554)">
+                <button class="lookup-btn" onclick="lookupClaim()">
+                     Lookup Claim
+                </button>
             </div>
 
             <div class="sample-btns">
-                <button class="sample-btn legit-btn" onclick="fillSample('legit')">
-                    Fill Sample Legitimate Claim
+                <button class="sample-btn legit-btn" onclick="fillId('legit')">
+                    Sample Legitimate ID
                 </button>
-                <button class="sample-btn fraud-btn" onclick="fillSample('fraud')">
-                     Fill Sample Fraud Claim
+                <button class="sample-btn fraud-btn" onclick="fillId('fraud')">
+                     Sample Fraud ID
                 </button>
             </div>
+        </div>
 
-            <button class="predict-btn" onclick="predict()">
-                 Analyze Claim for Fraud
+        
+        <div class="claim-details-card" id="claim-details" style="display:none">
+            <h3> Claim Details <span id="claim-id-badge"></span></h3>
+            <div class="details-grid" id="details-grid"></div>
+            <button class="predict-btn" onclick="analyzeFraud()">
+                 Analyze This Claim for Fraud
             </button>
         </div>
 
@@ -83,13 +65,14 @@
 
         <!-- Claims Log -->
         <div class="log-card" id="log-card" style="display:none">
-            <h3> Recent Claims Log</h3>
+            <h3> Recent Claims Analyzed</h3>
             <table class="log-table">
                 <thead>
                     <tr>
-                        <th>Patient</th>
-                        <th>Hospital</th>
+                        <th>Claim ID</th>
                         <th>Amount (₹)</th>
+                        <th>Procedures</th>
+                        <th>Stay Days</th>
                         <th>Risk Score</th>
                         <th>Verdict</th>
                         <th>Time</th>
