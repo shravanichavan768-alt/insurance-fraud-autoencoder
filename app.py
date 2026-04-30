@@ -1,12 +1,15 @@
 
+# app.py
 from flask import Flask, request, jsonify, render_template
 import numpy as np
 import joblib
 import tensorflow as tf
-import random
-import hashlib
+from db import init_db, get_claim, get_stats, save_new_claim
 
 app = Flask(__name__)
+
+# Initialize database
+init_db()
 
 # Load models
 scaler = joblib.load('models/scaler.pkl')
@@ -19,64 +22,54 @@ autoencoder = tf.keras.models.load_model(
 
 THRESHOLD = 2.5543
 
-def simulate_patient_history(policy_number, claim_amount, days):
-    """Simulate pulling patient history from database using policy number"""
-    
-    # Use policy number as seed for consistent results
-    seed = int(hashlib.md5(policy_number.encode()).hexdigest(), 16) % 10000
-    rng = random.Random(seed)
-
-    # Simulate internal flags based on policy number patterns
-    policy_age_months = rng.randint(1, 240)
-    num_claims_last_year = rng.randint(0, 15)
-    doctor_experience_years = rng.randint(1, 35)
-    num_procedures = max(1, int(days * rng.uniform(0.8, 2.5)))
-    num_diagnoses = rng.randint(1, 6)
-    patient_income_level = rng.randint(1, 5)
-    is_duplicate_claim = 1 if num_claims_last_year > 8 else 0
-    claim_approved_quickly = 1 if policy_age_months < 6 else rng.randint(0, 1)
-
-    return {
-        'policy_age_months': policy_age_months,
-        'num_claims_last_year': num_claims_last_year,
-        'doctor_experience_years': doctor_experience_years,
-        'num_procedures': num_procedures,
-        'num_diagnoses': num_diagnoses,
-        'patient_income_level': patient_income_level,
-        'is_duplicate_claim': is_duplicate_claim,
-        'claim_approved_quickly': claim_approved_quickly
-    }
-
 @app.route('/')
 def home():
-    return render_template('index.html')
+    stats = get_stats()
+    return render_template('index.html', stats=stats)
+
+@app.route('/lookup', methods=['POST'])
+def lookup():
+    """Look up claim from database by claim ID"""
+    data = request.json
+    claim_id = data.get('claim_id')
+
+    claim = get_claim(claim_id)
+    if not claim:
+        return jsonify({'error': 'Claim ID not found in database'}), 404
+
+    return jsonify({
+        'found': True,
+        'claim_id': claim['claim_id'],
+        'patient_age': claim['patient_age'],
+        'claim_amount': claim['claim_amount'],
+        'num_procedures': claim['num_procedures'],
+        'hospital_stay_days': claim['hospital_stay_days'],
+        'num_claims_last_year': claim['num_claims_last_year'],
+        'doctor_experience_years': claim['doctor_experience_years'],
+        'is_duplicate_claim': claim['is_duplicate_claim'],
+        'claim_approved_quickly': claim['claim_approved_quickly'],
+        'num_diagnoses': claim['num_diagnoses'],
+        'patient_income_level': claim['patient_income_level'],
+        'policy_age_months': claim['policy_age_months'],
+        'actual_class': claim['Class']
+    })
 
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
 
-    # Get user inputs
-    patient_age = int(data['patient_age'])
-    claim_amount = float(data['claim_amount'])
-    hospital_stay_days = int(data['hospital_stay_days'])
-    policy_number = data['policy_number']
-
-    # Simulate pulling history from database
-    history = simulate_patient_history(policy_number, claim_amount, hospital_stay_days)
-
-    # Build feature vector
     features = np.array([[
-        patient_age,
-        claim_amount,
-        history['num_procedures'],
-        hospital_stay_days,
-        history['num_claims_last_year'],
-        history['doctor_experience_years'],
-        history['is_duplicate_claim'],
-        history['claim_approved_quickly'],
-        history['num_diagnoses'],
-        history['patient_income_level'],
-        history['policy_age_months']
+        data['patient_age'],
+        data['claim_amount'],
+        data['num_procedures'],
+        data['hospital_stay_days'],
+        data['num_claims_last_year'],
+        data['doctor_experience_years'],
+        data['is_duplicate_claim'],
+        data['claim_approved_quickly'],
+        data['num_diagnoses'],
+        data['patient_income_level'],
+        data['policy_age_months']
     ]])
 
     features_scaled = scaler.transform(features)
@@ -99,14 +92,29 @@ def predict():
     final = 'FRAUD' if votes >= 2 else 'LEGIT'
     fraud_score = round((votes / 3) * 100)
 
+    # Save to database
+    save_new_claim({
+        'patient_age': data['patient_age'],
+        'claim_amount': data['claim_amount'],
+        'num_procedures': data['num_procedures'],
+        'hospital_stay_days': data['hospital_stay_days'],
+        'num_claims_last_year': data['num_claims_last_year'],
+        'doctor_experience_years': data['doctor_experience_years'],
+        'is_duplicate_claim': data['is_duplicate_claim'],
+        'claim_approved_quickly': data['claim_approved_quickly'],
+        'num_diagnoses': data['num_diagnoses'],
+        'patient_income_level': data['patient_income_level'],
+        'policy_age_months': data['policy_age_months'],
+        'verdict': 1 if final == 'FRAUD' else 0
+    })
+
     return jsonify({
         'autoencoder': ae_pred,
         'isolation_forest': iso_pred,
         'xgboost': xgb_pred,
         'reconstruction_error': round(recon_error, 4),
         'final_verdict': final,
-        'fraud_score': fraud_score,
-        'history': history
+        'fraud_score': fraud_score
     })
 
 if __name__ == '__main__':
