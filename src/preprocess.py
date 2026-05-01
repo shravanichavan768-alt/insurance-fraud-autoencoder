@@ -1,4 +1,4 @@
-
+# src/preprocess.py
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -6,19 +6,33 @@ from sklearn.model_selection import train_test_split
 import joblib
 import os
 
+FEATURE_COLS = [
+    'claim_amount',
+    'hospital_stay_days',
+    'num_procedures',
+    'num_diagnoses',
+    'doctor_experience_years',
+    'num_claims_last_year',
+    'policy_age_months',
+    'claim_to_premium_ratio',
+    'is_duplicate_claim',
+    'patient_age',
+    'monthly_premium'
+]
+
 def load_data(filepath='data/insurance_fraud_dataset.csv'):
     df = pd.read_csv(filepath)
     print(f"Dataset loaded: {df.shape}")
+    print(f"Fraud rate: {df['Class'].mean()*100:.2f}%")
     return df
 
 def preprocess(df):
-    df_model = df.drop('claim_id', axis=1)
-    X = df_model.drop('Class', axis=1)
-    y = df_model['Class']
+    X = df[FEATURE_COLS]
+    y = df['Class']
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
+    X_scaled = pd.DataFrame(X_scaled, columns=FEATURE_COLS)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X_scaled, y, test_size=0.2, random_state=42, stratify=y)
