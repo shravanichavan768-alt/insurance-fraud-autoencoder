@@ -1,13 +1,13 @@
-
+# src/evaluate.py
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import roc_curve, roc_auc_score, f1_score
+from sklearn.metrics import (roc_curve, roc_auc_score,
+                             f1_score, classification_report)
 import os
 
 def find_best_threshold(reconstruction_error, y_test):
-    thresholds = np.percentile(reconstruction_error, np.arange(80, 100, 0.5))
+    thresholds = np.percentile(reconstruction_error, np.arange(50, 100, 0.5))
     f1_scores = []
     for thresh in thresholds:
         y_pred = (reconstruction_error > thresh).astype(int)
@@ -36,33 +36,39 @@ def plot_reconstruction_error(reconstruction_error, y_test, best_threshold):
     plt.close()
     print("Reconstruction error plot saved ")
 
-def plot_roc_curves(y_test, reconstruction_error, xgb_pred_proba, iso_pred):
+def plot_roc_curves(y_test, reconstruction_error,
+                   xgb_pred_proba, iso_pred,
+                   ae_roc, xgb_roc, iso_roc):
     os.makedirs('outputs', exist_ok=True)
     plt.figure(figsize=(8, 6))
 
     fpr_ae, tpr_ae, _ = roc_curve(y_test, reconstruction_error)
-    auc_ae = roc_auc_score(y_test, reconstruction_error)
-    plt.plot(fpr_ae, tpr_ae, label=f'Autoencoder (AUC={auc_ae:.4f})', color='#3498db')
+    plt.plot(fpr_ae, tpr_ae,
+             label=f'Autoencoder (AUC={ae_roc:.4f})',
+             color='#3498db')
 
     fpr_xgb, tpr_xgb, _ = roc_curve(y_test, xgb_pred_proba)
-    auc_xgb = roc_auc_score(y_test, xgb_pred_proba)
-    plt.plot(fpr_xgb, tpr_xgb, label=f'XGBoost (AUC={auc_xgb:.4f})', color='#e74c3c')
+    plt.plot(fpr_xgb, tpr_xgb,
+             label=f'XGBoost (AUC={xgb_roc:.4f})',
+             color='#e74c3c')
 
     fpr_iso, tpr_iso, _ = roc_curve(y_test, iso_pred)
-    auc_iso = roc_auc_score(y_test, iso_pred)
-    plt.plot(fpr_iso, tpr_iso, label=f'Isolation Forest (AUC={auc_iso:.4f})', color='#2ecc71')
+    plt.plot(fpr_iso, tpr_iso,
+             label=f'Isolation Forest (AUC={iso_roc:.4f})',
+             color='#2ecc71')
 
     plt.plot([0, 1], [0, 1], 'k--', label='Random')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves — All Models')
+    plt.title('ROC Curves - All Models')
     plt.legend()
     plt.tight_layout()
     plt.savefig('outputs/roc_curves.png', dpi=150)
     plt.close()
     print("ROC curves saved ")
 
-def plot_model_comparison(ae_f1, iso_f1, xgb_f1, ae_roc, iso_roc, xgb_roc):
+def plot_model_comparison(ae_f1, iso_f1, xgb_f1,
+                          ae_roc, iso_roc, xgb_roc):
     os.makedirs('outputs', exist_ok=True)
     models = ['Autoencoder\n(Deep Learning)',
               'Isolation Forest\n(Unsupervised)',
@@ -70,34 +76,39 @@ def plot_model_comparison(ae_f1, iso_f1, xgb_f1, ae_roc, iso_roc, xgb_roc):
     f1_scores = [ae_f1, iso_f1, xgb_f1]
     roc_scores = [ae_roc, iso_roc, xgb_roc]
     x = np.arange(len(models))
-    width = 0.35
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    fig.suptitle('Insurance Fraud Detection — Model Comparison',
+    fig.suptitle('Insurance Fraud Detection - Model Comparison',
                  fontsize=14, fontweight='bold')
 
-    bars1 = axes[0].bar(x, f1_scores, width, color='#3498db', alpha=0.8)
-    axes[0].set_title('F1 Score Comparison')
+    bars1 = axes[0].bar(x, f1_scores, 0.35,
+                        color='#3498db', alpha=0.8)
+    axes[0].set_title('F1 Score Comparison (Fraud Class)')
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(models)
-    axes[0].set_ylim(0.9, 1.02)
+    axes[0].set_ylim(0, 1.1)
     for bar in bars1:
-        axes[0].text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.002,
-                    f'{bar.get_height():.4f}', ha='center', fontweight='bold')
+        axes[0].text(bar.get_x() + bar.get_width()/2.,
+                    bar.get_height() + 0.02,
+                    f'{bar.get_height():.4f}',
+                    ha='center', fontweight='bold')
 
-    bars2 = axes[1].bar(x, roc_scores, width, color='#e74c3c', alpha=0.8)
+    bars2 = axes[1].bar(x, roc_scores, 0.35,
+                        color='#e74c3c', alpha=0.8)
     axes[1].set_title('ROC-AUC Comparison')
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(models)
-    axes[1].set_ylim(0.9, 1.02)
+    axes[1].set_ylim(0, 1.1)
     for bar in bars2:
-        axes[1].text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.002,
-                    f'{bar.get_height():.4f}', ha='center', fontweight='bold')
+        axes[1].text(bar.get_x() + bar.get_width()/2.,
+                    bar.get_height() + 0.02,
+                    f'{bar.get_height():.4f}',
+                    ha='center', fontweight='bold')
 
     plt.tight_layout()
     plt.savefig('outputs/model_comparison.png', dpi=150)
     plt.close()
-    print("Model comparison plot saved ")
+    print("Model comparison saved ")
 
 if __name__ == "__main__":
     print("Evaluate module ready ")
