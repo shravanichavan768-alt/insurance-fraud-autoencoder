@@ -1,12 +1,13 @@
-
+# src/autoencoder.py
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
+import joblib
 import os
 
-def build_autoencoder(input_dim):
+def build_autoencoder(input_dim=11):
     input_layer = keras.Input(shape=(input_dim,))
 
     # Encoder
@@ -27,7 +28,7 @@ def build_autoencoder(input_dim):
     print(autoencoder.summary())
     return autoencoder
 
-def train_autoencoder(autoencoder, X_train_legit, epochs=50, batch_size=32):
+def train_autoencoder(autoencoder, X_train_legit, epochs=100, batch_size=32):
     history = autoencoder.fit(
         X_train_legit, X_train_legit,
         epochs=epochs,
@@ -37,11 +38,12 @@ def train_autoencoder(autoencoder, X_train_legit, epochs=50, batch_size=32):
         verbose=1
     )
 
-    # Plot training loss
     os.makedirs('outputs', exist_ok=True)
     plt.figure(figsize=(10, 4))
-    plt.plot(history.history['loss'], label='Training Loss', color='#2ecc71')
-    plt.plot(history.history['val_loss'], label='Validation Loss', color='#e74c3c')
+    plt.plot(history.history['loss'],
+             label='Training Loss', color='#2ecc71')
+    plt.plot(history.history['val_loss'],
+             label='Validation Loss', color='#e74c3c')
     plt.title('Autoencoder Training Loss')
     plt.xlabel('Epoch')
     plt.ylabel('MSE Loss')
@@ -54,7 +56,7 @@ def train_autoencoder(autoencoder, X_train_legit, epochs=50, batch_size=32):
     return autoencoder, history
 
 def get_reconstruction_error(autoencoder, X):
-    X_pred = autoencoder.predict(X)
+    X_pred = autoencoder.predict(X, verbose=0)
     errors = np.mean(np.power(X.values - X_pred, 2), axis=1)
     return errors
 
@@ -64,8 +66,11 @@ def save_autoencoder(autoencoder, path='models/autoencoder_model.h5'):
     print(f"Autoencoder saved to {path} ")
 
 def load_autoencoder(path='models/autoencoder_model.h5'):
-    autoencoder = keras.models.load_model(path)
-    print(f"Autoencoder loaded from {path} ")
+    autoencoder = keras.models.load_model(
+        path,
+        custom_objects={'mse': tf.keras.losses.MeanSquaredError()}
+    )
+    print(f"Autoencoder loaded ")
     return autoencoder
 
 if __name__ == "__main__":
