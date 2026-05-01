@@ -2,6 +2,7 @@
 import sqlite3
 import pandas as pd
 import os
+from datetime import datetime
 
 DB_PATH = 'database/fraud_db.sqlite'
 
@@ -137,6 +138,72 @@ def get_stats():
     conn.close()
     return {'total': total, 'fraud': fraud, 
             'legit': total - fraud, 'policies': policies}
+
+def save_decision(claim_id, policy_number, patient_name, 
+                  claim_amount, ml_verdict, agent_decision, remarks=''):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Create decisions table if not exists
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            claim_id INTEGER,
+            policy_number TEXT,
+            patient_name TEXT,
+            claim_amount REAL,
+            ml_verdict TEXT,
+            agent_decision TEXT,
+            remarks TEXT,
+            decision_time TEXT
+        )
+    ''')
+    
+    cursor.execute('''
+        INSERT INTO decisions 
+        (claim_id, policy_number, patient_name, 
+         claim_amount, ml_verdict, agent_decision, 
+         remarks, decision_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        claim_id,
+        policy_number,
+        patient_name,
+        claim_amount,
+        ml_verdict,
+        agent_decision,
+        remarks,
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ))
+    
+    conn.commit()
+    conn.close()
+    print(f"Decision saved: {agent_decision} ")
+
+def get_decisions():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS decisions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            claim_id INTEGER,
+            policy_number TEXT,
+            patient_name TEXT,
+            claim_amount REAL,
+            ml_verdict TEXT,
+            agent_decision TEXT,
+            remarks TEXT,
+            decision_time TEXT
+        )
+    ''')
+    cursor.execute('''
+        SELECT * FROM decisions 
+        ORDER BY decision_time DESC 
+        LIMIT 20
+    ''')
+    decisions = cursor.fetchall()
+    conn.close()
+    return decisions
 
 if __name__ == "__main__":
     init_db()
