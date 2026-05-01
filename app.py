@@ -136,7 +136,12 @@ def predict():
 
     # Weighted voting
     fraud_votes = [ae_pred, iso_pred, xgb_pred].count('FRAUD')
-    final = 'FRAUD' if fraud_votes >= 2 else 'LEGIT'
+    obvious_fraud = (
+        claim_to_premium_ratio > 20 or
+        (num_claims_last_year > 5 and claim_amount > 200000) or
+        (policy_age_months < 6 and claim_to_premium_ratio > 10)
+    )
+    final = 'FRAUD' if (fraud_votes >= 2 or obvious_fraud) else 'LEGIT'
     fraud_score = round((xgb_proba * 0.5 +
                         (recon_error/best_threshold) * 0.3 +
                         (fraud_votes/3) * 0.2) * 100)
