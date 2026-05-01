@@ -6,15 +6,17 @@ let riskChart = null;
 function fillPolicy(type) {
     if (type === 'legit') {
         const legitPolicies = [
-            'LIC-2018-0001', 'LIC-2019-0002', 'LIC-2017-0005',
-            'LIC-2020-0010', 'LIC-2016-0015'
+            'LIC-2016-0001', 'LIC-2021-0002',
+            'LIC-2016-0003', 'LIC-2020-0004',
+            'LIC-2018-0005'
         ];
         const p = legitPolicies[Math.floor(Math.random() * legitPolicies.length)];
         document.getElementById('policy_number').value = p;
     } else {
         const fraudPolicies = [
-            'LIC-2024-0401', 'LIC-2025-0410', 'LIC-2023-0420',
-            'LIC-2024-0430', 'LIC-2025-0440'
+            'LIC-2023-0401', 'LIC-2025-0402',
+            'LIC-2023-0403', 'LIC-2023-0404',
+            'LIC-2025-0405'
         ];
         const p = fraudPolicies[Math.floor(Math.random() * fraudPolicies.length)];
         document.getElementById('policy_number').value = p;
@@ -175,7 +177,7 @@ async function analyzeFraud() {
         document.getElementById('result').innerHTML = `
             <div class="result-card">
                 <div class="verdict-banner ${isFraud ? 'fraud' : 'legit'}">
-                    <h2>${isFraud ? ' FRAUD DETECTED' : '✅ LEGITIMATE CLAIM'}</h2>
+                    <h2>${isFraud ? '🚨 FRAUD DETECTED' : '✅ LEGITIMATE CLAIM'}</h2>
                     <p>${isFraud
                         ? 'This claim has been flagged as potentially fraudulent. Please escalate for manual review.'
                         : 'This claim appears legitimate. You may proceed with approval.'}</p>
@@ -193,21 +195,21 @@ async function analyzeFraud() {
 
                         <div class="model-results">
                             <div class="model-card">
-                                <div class="model-name"> Autoencoder</div>
+                                <div class="model-name">🧠 Autoencoder</div>
                                 <div class="model-verdict ${result.autoencoder === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.autoencoder === 'FRAUD' ? ' FRAUD' : ' LEGIT'}
+                                    ${result.autoencoder === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
                                 </div>
                             </div>
                             <div class="model-card">
-                                <div class="model-name"> Isolation Forest</div>
+                                <div class="model-name">🌲 Isolation Forest</div>
                                 <div class="model-verdict ${result.isolation_forest === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.isolation_forest === 'FRAUD' ? ' FRAUD' : ' LEGIT'}
+                                    ${result.isolation_forest === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
                                 </div>
                             </div>
                             <div class="model-card">
-                                <div class="model-name"> XGBoost</div>
+                                <div class="model-name">⚡ XGBoost</div>
                                 <div class="model-verdict ${result.xgboost === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.xgboost === 'FRAUD' ? ' FRAUD' : ' LEGIT'}
+                                    ${result.xgboost === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
                                 </div>
                             </div>
                         </div>
@@ -215,7 +217,7 @@ async function analyzeFraud() {
 
                     <div class="right-col">
                         <div class="flags-section">
-                            <h4> Auto-Calculated Risk Flags</h4>
+                            <h4>🔎 Auto-Calculated Risk Flags</h4>
                             <div class="flag-item">
                                 <span>Claims Last Year</span>
                                 <span style="color:${d.num_claims_last_year > 4 ? '#e74c3c' : '#2ecc71'}">
@@ -237,7 +239,7 @@ async function analyzeFraud() {
                             <div class="flag-item">
                                 <span>Duplicate Claim</span>
                                 <span style="color:${d.is_duplicate ? '#e74c3c' : '#2ecc71'}">
-                                    ${d.is_duplicate ? 'YES ' : 'NO '}
+                                    ${d.is_duplicate ? 'YES ⚠️' : 'NO ✅'}
                                 </span>
                             </div>
                             <div class="flag-item">
@@ -265,13 +267,13 @@ async function analyzeFraud() {
         document.getElementById('result').innerHTML = `
             <div class="result-card">
                 <div class="verdict-banner fraud">
-                    <h2> Error</h2>
+                    <h2>❌ Error</h2>
                     <p>${err.message}</p>
                 </div>
             </div>`;
     } finally {
         btn.disabled = false;
-        btn.textContent = ' Analyze This Claim for Fraud';
+        btn.textContent = '🚨 Analyze This Claim for Fraud';
     }
 }
 
