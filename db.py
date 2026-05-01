@@ -12,38 +12,26 @@ def get_connection():
 
 def init_db():
     os.makedirs('database', exist_ok=True)
+    
+    # Delete old database and recreate fresh
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+    
     conn = get_connection()
-    cursor = conn.cursor()
 
-    # Create claims table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS claims (
-            claim_id INTEGER PRIMARY KEY,
-            patient_age INTEGER,
-            claim_amount REAL,
-            num_procedures INTEGER,
-            hospital_stay_days INTEGER,
-            num_claims_last_year INTEGER,
-            doctor_experience_years INTEGER,
-            is_duplicate_claim INTEGER,
-            claim_approved_quickly INTEGER,
-            num_diagnoses INTEGER,
-            patient_income_level INTEGER,
-            policy_age_months INTEGER,
-            Class INTEGER
-        )
-    ''')
+    # Load claims CSV
+    df_claims = pd.read_csv('data/insurance_fraud_dataset.csv')
+    df_policies = pd.read_csv('data/policies.csv')
 
-    csv_path = 'data/insurance_fraud_dataset.csv'
-    df = pd.read_csv(csv_path)
-    df['claim_id'] = df['claim_id'].astype(int)
-    df['Class'] = df['Class'].astype(int)
-
-    df.to_sql('claims', conn, if_exists='replace', index=False)
-    print(f"Loaded {len(df)} claims into database ")
+    # Save to SQLite
+    df_claims.to_sql('claims', conn, if_exists='replace', index=False)
+    df_policies.to_sql('policies', conn, if_exists='replace', index=False)
 
     conn.commit()
     conn.close()
+
+    print(f"Loaded {len(df_claims)} claims into database ")
+    print(f"Loaded {len(df_policies)} policies into database ")
 
 def get_claim(claim_id):
     conn = get_connection()
@@ -53,23 +41,50 @@ def get_claim(claim_id):
     conn.close()
     return claim
 
-def get_similar_claims(claim_id, limit=5):
+def get_policy(policy_number):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM policies WHERE policy_number = ?', (policy_number,))
+    policy = cursor.fetchone()
+    conn.close()
+    return policy
+
+def get_policy_claims(policy_number):
+    """Get all past claims for a policy"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM claims 
+        WHERE policy_number = ?
+        ORDER BY treatment_date DESC
+    ''', (policy_number,))
+    claims = cursor.fetchall()
+    conn.close()
+    return claims
+
+def get_policy_by_number(policy_number):
     
     conn = get_connection()
     cursor = conn.cursor()
-    claim = get_claim(claim_id)
-    if claim:
-        age = claim['patient_age']
-        cursor.execute('''
-            SELECT * FROM claims 
-            WHERE patient_age BETWEEN ? AND ?
-            AND claim_id != ?
-            ORDER BY RANDOM()
-            LIMIT ?
-        ''', (age-5, age+5, claim_id, limit))
-    results = cursor.fetchall()
+
+    # Get policy info
+    cursor.execute('SELECT * FROM policies WHERE policy_number = ?', (policy_number,))
+    policy = cursor.fetchone()
+
+    if not policy:
+        conn.close()
+        return None, None
+
+    # Get claim history
+    cursor.execute('''
+        SELECT * FROM claims 
+        WHERE policy_number = ?
+        ORDER BY treatment_date DESC
+    ''', (policy_number,))
+    past_claims = cursor.fetchall()
     conn.close()
-    return results
+
+    return policy, past_claims
 
 def save_new_claim(claim_data):
     
@@ -77,24 +92,32 @@ def save_new_claim(claim_data):
     cursor = conn.cursor()
     cursor.execute('''
         INSERT INTO claims (
-            patient_age, claim_amount, num_procedures,
-            hospital_stay_days, num_claims_last_year,
-            doctor_experience_years, is_duplicate_claim,
-            claim_approved_quickly, num_diagnoses,
-            patient_income_level, policy_age_months, Class
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            policy_number, patient_name, patient_age,
+            hospital_name, diagnosis_type,
+            claim_amount, hospital_stay_days,
+            num_procedures, num_diagnoses,
+            doctor_experience_years, num_claims_last_year,
+            policy_age_months, claim_to_premium_ratio,
+            is_duplicate_claim, treatment_date,
+            monthly_premium, Class
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
+        claim_data['policy_number'],
+        claim_data['patient_name'],
         claim_data['patient_age'],
+        claim_data['hospital_name'],
+        claim_data['diagnosis_type'],
         claim_data['claim_amount'],
-        claim_data['num_procedures'],
         claim_data['hospital_stay_days'],
-        claim_data['num_claims_last_year'],
-        claim_data['doctor_experience_years'],
-        claim_data['is_duplicate_claim'],
-        claim_data['claim_approved_quickly'],
+        claim_data['num_procedures'],
         claim_data['num_diagnoses'],
-        claim_data['patient_income_level'],
+        claim_data['doctor_experience_years'],
+        claim_data['num_claims_last_year'],
         claim_data['policy_age_months'],
+        claim_data['claim_to_premium_ratio'],
+        claim_data['is_duplicate_claim'],
+        claim_data['treatment_date'],
+        claim_data['monthly_premium'],
         claim_data['verdict']
     ))
     conn.commit()
@@ -103,15 +126,17 @@ def save_new_claim(claim_data):
     return new_id
 
 def get_stats():
-    
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT COUNT(*) as total FROM claims')
     total = cursor.fetchone()['total']
     cursor.execute('SELECT COUNT(*) as fraud FROM claims WHERE Class = 1')
     fraud = cursor.fetchone()['fraud']
+    cursor.execute('SELECT COUNT(*) as policies FROM policies')
+    policies = cursor.fetchone()['policies']
     conn.close()
-    return {'total': total, 'fraud': fraud, 'legit': total - fraud}
+    return {'total': total, 'fraud': fraud, 
+            'legit': total - fraud, 'policies': policies}
 
 if __name__ == "__main__":
     init_db()
@@ -119,3 +144,4 @@ if __name__ == "__main__":
     print(f"Total claims: {stats['total']}")
     print(f"Fraud claims: {stats['fraud']}")
     print(f"Legit claims: {stats['legit']}")
+    print(f"Total policies: {stats['policies']}")
