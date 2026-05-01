@@ -378,3 +378,245 @@ input::placeholder {
     font-weight: bold;
     color: white;
 }
+/* Lookup Row */
+.lookup-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.lookup-row input {
+    flex: 1;
+    font-size: 16px;
+}
+
+.lookup-btn {
+    padding: 12px 24px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.lookup-btn:hover { background: #2980b9; }
+.lookup-btn:disabled { background: #333; cursor: not-allowed; }
+
+/* Claim Details Card */
+.claim-details-card {
+    background: #111122;
+    border: 1px solid #1e1e3a;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 25px;
+}
+
+.claim-details-card h3 {
+    font-size: 18px;
+    margin-bottom: 18px;
+}
+
+.id-badge {
+    background: #3498db22;
+    color: #3498db;
+    border: 1px solid #3498db;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-left: 8px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    background: #0f0f1e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+.detail-value.warn { color: #e74c3c; }
+.detail-value.good { color: #2ecc71; }
+
+/* Navbar Pills */
+.nav-pills {
+    display: flex;
+    gap: 8px;
+}
+
+.pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pill.blue { background: #3498db22; color: #3498db; border: 1px solid #3498db; }
+.pill.red { background: #e74c3c22; color: #e74c3c; border: 1px solid #e74c3c; }
+.pill.green { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc71; }
+
+/* Step labels */
+.form-card h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+/* Past claims section */
+#past-claims-section h4 {
+    font-size: 14px;
+    margin: 16px 0 10px;
+    color: #aaa;
+}
+
+/* Policy details grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    background: #0f0f1e;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+}
+
+.detail-value.warn { color: #e74c3c; }
+.detail-value.good { color: #2ecc71; }
+
+/* Decision Section */
+.decision-section {
+    margin-top: 25px;
+    padding: 20px;
+    background: #0f0f1e;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+}
+
+.decision-section h4 {
+    font-size: 15px;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.decision-section p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 14px;
+}
+
+.decision-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.approve-btn {
+    flex: 1;
+    padding: 12px;
+    background: #2ecc7122;
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.approve-btn:hover { background: #2ecc7133; }
+.approve-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.reject-btn {
+    flex: 1;
+    padding: 12px;
+    background: #e74c3c22;
+    border: 1px solid #e74c3c;
+    color: #e74c3c;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reject-btn:hover { background: #e74c3c33; }
+.reject-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.remarks-row input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #2a2a4a;
+    background: #1a1a2e;
+    color: white;
+    font-size: 13px;
+}
+
+.decision-confirmed {
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.decision-confirmed.approved {
+    background: #2ecc7115;
+    border: 1px solid #2ecc71;
+}
+
+.decision-confirmed.rejected {
+    background: #e74c3c15;
+    border: 1px solid #e74c3c;
+}
+
+.decision-confirmed h3 {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.decision-confirmed p {
+    font-size: 13px;
+    color: #aaa;
+    margin: 4px 0;
+}

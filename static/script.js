@@ -1,6 +1,8 @@
 // static/script.js
 const claimsLog = [];
 let currentPolicy = null;
+let currentResult = null;
+let currentClaimId = null;
 let riskChart = null;
 
 function fillPolicy(type) {
@@ -32,7 +34,7 @@ async function lookupPolicy() {
 
     const btn = document.querySelector('.lookup-btn');
     btn.disabled = true;
-    btn.textContent = '⏳ Looking up...';
+    btn.textContent = 'Looking up...';
 
     try {
         const res = await fetch('/lookup_policy', {
@@ -43,19 +45,17 @@ async function lookupPolicy() {
 
         if (res.status === 404) {
             const err = await res.json();
-            alert(err.error + '\n\nTry: LIC-2018-0001 to LIC-2022-0400 for legit\nLIC-2023-0401 to LIC-2025-0500 for fraud prone');
+            alert(err.error + '\n\nTry: LIC-2016-0001 to LIC-2022-0400 for legit\nLIC-2023-0401 to LIC-2025-0500 for fraud prone');
             return;
         }
 
         const policy = await res.json();
         currentPolicy = policy;
 
-        // Show policy card
         document.getElementById('policy-card').style.display = 'block';
         document.getElementById('claim-form').style.display = 'block';
         document.getElementById('result').innerHTML = '';
 
-        // Fill policy details
         document.getElementById('policy-details').innerHTML = `
             <div class="detail-item">
                 <span class="detail-label">Patient Name</span>
@@ -81,11 +81,11 @@ async function lookupPolicy() {
             </div>
             <div class="detail-item">
                 <span class="detail-label">Monthly Premium</span>
-                <span class="detail-value">₹${Number(policy.monthly_premium).toLocaleString('en-IN')}</span>
+                <span class="detail-value">Rs. ${Number(policy.monthly_premium).toLocaleString('en-IN')}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Coverage Amount</span>
-                <span class="detail-value">₹${Number(policy.coverage_amount).toLocaleString('en-IN')}</span>
+                <span class="detail-value">Rs. ${Number(policy.coverage_amount).toLocaleString('en-IN')}</span>
             </div>
             <div class="detail-item">
                 <span class="detail-label">Claims Last Year</span>
@@ -101,14 +101,13 @@ async function lookupPolicy() {
             </div>
         `;
 
-        // Show past claims
         if (policy.past_claims && policy.past_claims.length > 0) {
             document.getElementById('past-claims-section').style.display = 'block';
             document.getElementById('past-claims-body').innerHTML =
                 policy.past_claims.map(c => `
                     <tr>
                         <td>#${c.claim_id}</td>
-                        <td>₹${Number(c.claim_amount).toLocaleString('en-IN')}</td>
+                        <td>Rs. ${Number(c.claim_amount).toLocaleString('en-IN')}</td>
                         <td>${c.hospital_name || 'N/A'}</td>
                         <td>${c.diagnosis_type || 'N/A'}</td>
                         <td>${c.treatment_date}</td>
@@ -125,7 +124,7 @@ async function lookupPolicy() {
         alert('Error: ' + err.message);
     } finally {
         btn.disabled = false;
-        btn.textContent = '🔍 Lookup Policy';
+        btn.textContent = 'Lookup Policy';
     }
 }
 
@@ -143,11 +142,11 @@ async function analyzeFraud() {
 
     const btn = document.querySelector('.predict-btn');
     btn.disabled = true;
-    btn.textContent = '⏳ Analyzing...';
+    btn.textContent = 'Analyzing...';
 
     document.getElementById('result').innerHTML = `
         <div class="loading-card">
-            🔍 Running AI fraud detection models...<br>
+            Running AI fraud detection models...<br>
             <small style="color:#555; margin-top:8px; display:block">
                 Calculating risk features from policy history...
             </small>
@@ -174,12 +173,15 @@ async function analyzeFraud() {
         const isFraud = result.final_verdict === 'FRAUD';
         const d = result.derived_features;
 
+        currentResult = result;
+        currentClaimId = result.claim_id || Date.now();
+
         document.getElementById('result').innerHTML = `
             <div class="result-card">
                 <div class="verdict-banner ${isFraud ? 'fraud' : 'legit'}">
-                    <h2>${isFraud ? '🚨 FRAUD DETECTED' : '✅ LEGITIMATE CLAIM'}</h2>
+                    <h2>${isFraud ? 'FRAUD DETECTED' : 'LEGITIMATE CLAIM'}</h2>
                     <p>${isFraud
-                        ? 'This claim has been flagged as potentially fraudulent. Please escalate for manual review.'
+                        ? 'This claim has been flagged as potentially fraudulent. Please review before approving.'
                         : 'This claim appears legitimate. You may proceed with approval.'}</p>
                 </div>
 
@@ -195,21 +197,21 @@ async function analyzeFraud() {
 
                         <div class="model-results">
                             <div class="model-card">
-                                <div class="model-name">🧠 Autoencoder</div>
+                                <div class="model-name">Autoencoder</div>
                                 <div class="model-verdict ${result.autoencoder === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.autoencoder === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
+                                    ${result.autoencoder}
                                 </div>
                             </div>
                             <div class="model-card">
-                                <div class="model-name">🌲 Isolation Forest</div>
+                                <div class="model-name">Isolation Forest</div>
                                 <div class="model-verdict ${result.isolation_forest === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.isolation_forest === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
+                                    ${result.isolation_forest}
                                 </div>
                             </div>
                             <div class="model-card">
-                                <div class="model-name">⚡ XGBoost</div>
+                                <div class="model-name">XGBoost</div>
                                 <div class="model-verdict ${result.xgboost === 'FRAUD' ? 'fraud' : 'legit'}">
-                                    ${result.xgboost === 'FRAUD' ? '🚨 FRAUD' : '✅ LEGIT'}
+                                    ${result.xgboost}
                                 </div>
                             </div>
                         </div>
@@ -217,7 +219,7 @@ async function analyzeFraud() {
 
                     <div class="right-col">
                         <div class="flags-section">
-                            <h4>🔎 Auto-Calculated Risk Flags</h4>
+                            <h4>Auto-Calculated Risk Flags</h4>
                             <div class="flag-item">
                                 <span>Claims Last Year</span>
                                 <span style="color:${d.num_claims_last_year > 4 ? '#e74c3c' : '#2ecc71'}">
@@ -239,7 +241,7 @@ async function analyzeFraud() {
                             <div class="flag-item">
                                 <span>Duplicate Claim</span>
                                 <span style="color:${d.is_duplicate ? '#e74c3c' : '#2ecc71'}">
-                                    ${d.is_duplicate ? 'YES ⚠️' : 'NO ✅'}
+                                    ${d.is_duplicate ? 'YES' : 'NO'}
                                 </span>
                             </div>
                             <div class="flag-item">
@@ -257,6 +259,24 @@ async function analyzeFraud() {
                         </div>
                     </div>
                 </div>
+
+                <!-- Agent Decision Section -->
+                <div class="decision-section">
+                    <h4>Agent Decision</h4>
+                    <p>Review the analysis above and make your decision:</p>
+                    <div class="decision-buttons">
+                        <button class="approve-btn" onclick="makeDecision('APPROVED')">
+                            Approve Claim
+                        </button>
+                        <button class="reject-btn" onclick="makeDecision('REJECTED')">
+                            Reject Claim
+                        </button>
+                    </div>
+                    <div class="remarks-row">
+                        <input type="text" id="remarks" 
+                               placeholder="Add remarks (optional)...">
+                    </div>
+                </div>
             </div>`;
 
         renderChart(result.fraud_score);
@@ -267,13 +287,54 @@ async function analyzeFraud() {
         document.getElementById('result').innerHTML = `
             <div class="result-card">
                 <div class="verdict-banner fraud">
-                    <h2>❌ Error</h2>
+                    <h2>Error</h2>
                     <p>${err.message}</p>
                 </div>
             </div>`;
     } finally {
         btn.disabled = false;
-        btn.textContent = '🚨 Analyze This Claim for Fraud';
+        btn.textContent = 'Analyze This Claim for Fraud';
+    }
+}
+
+async function makeDecision(decision) {
+    if (!currentPolicy || !currentResult) return;
+
+    const remarks = document.getElementById('remarks').value;
+    const btns = document.querySelectorAll('.approve-btn, .reject-btn');
+    btns.forEach(b => b.disabled = true);
+
+    try {
+        const res = await fetch('/decision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                claim_id: currentClaimId,
+                policy_number: currentPolicy.policy_number,
+                patient_name: currentPolicy.patient_name,
+                claim_amount: +document.getElementById('claim_amount').value,
+                ml_verdict: currentResult.final_verdict,
+                agent_decision: decision,
+                remarks: remarks
+            })
+        });
+
+        const result = await res.json();
+
+        // Show decision confirmation
+        document.querySelector('.decision-section').innerHTML = `
+            <div class="decision-confirmed ${decision === 'APPROVED' ? 'approved' : 'rejected'}">
+                <h3>${decision === 'APPROVED' ? 'Claim Approved' : 'Claim Rejected'}</h3>
+                <p>Decision saved to database successfully.</p>
+                ${remarks ? `<p>Remarks: ${remarks}</p>` : ''}
+                <p style="color:#555; font-size:12px; margin-top:8px;">
+                    ${new Date().toLocaleString()}
+                </p>
+            </div>`;
+
+    } catch (err) {
+        alert('Error saving decision: ' + err.message);
+        btns.forEach(b => b.disabled = false);
     }
 }
 
@@ -312,7 +373,7 @@ function updateLog(policy, patient, amount, score, verdict) {
         <tr>
             <td>${c.policy}</td>
             <td>${c.patient}</td>
-            <td>₹${Number(c.amount).toLocaleString('en-IN')}</td>
+            <td>Rs. ${Number(c.amount).toLocaleString('en-IN')}</td>
             <td>${c.score}%</td>
             <td><span class="badge-${c.verdict === 'FRAUD' ? 'fraud' : 'legit'}">
                 ${c.verdict}
