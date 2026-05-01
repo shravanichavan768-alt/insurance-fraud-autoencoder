@@ -11,7 +11,7 @@
 
 <div class="portal">
 
-    <!-- Top Navbar -->
+    <!-- Navbar -->
     <div class="navbar">
         <div class="nav-logo">🛡️ FraudGuard AI</div>
         <div class="nav-stats">
@@ -19,42 +19,103 @@
             <span> Isolation Forest</span>
             <span> XGBoost</span>
             <div class="nav-pills">
-                <span class="pill blue">{{ stats.total | int }} Total Claims</span>
-                <span class="pill red">{{ stats.fraud | int }} Fraud</span>
-                <span class="pill green">{{ stats.legit | int }} Legit</span>
+                <span class="pill blue">{{ stats.policies }} Policies</span>
+                <span class="pill blue">{{ stats.total }} Claims</span>
+                <span class="pill red">{{ stats.fraud }} Fraud</span>
+                <span class="pill green">{{ stats.legit }} Legit</span>
             </div>
         </div>
     </div>
 
     <div class="main">
 
-        <!-- Lookup Card -->
+        <!-- Step 1: Policy Lookup -->
         <div class="form-card">
-            <h3> Claim Lookup & Fraud Analysis</h3>
-            <p class="form-sub">Enter a Claim ID to pull data from our database and analyze for fraud.</p>
+            <h3> Step 1 — Policy Lookup</h3>
+            <p class="form-sub">Enter the policy number to pull patient history from database.</p>
 
             <div class="lookup-row">
-                <input type="number" id="claim_id" 
-                       placeholder="Enter Claim ID (e.g. 1001, 5432, 33554)">
-                <button class="lookup-btn" onclick="lookupClaim()">
-                     Lookup Claim
+                <input type="text" id="policy_number"
+                       placeholder="e.g. LIC-2018-0001, LIC-2025-0401">
+                <button class="lookup-btn" onclick="lookupPolicy()">
+                     Lookup Policy
                 </button>
             </div>
 
             <div class="sample-btns">
-                <button class="sample-btn legit-btn" onclick="fillId('legit')">
-                    Sample Legitimate ID
+                <button class="sample-btn legit-btn" onclick="fillPolicy('legit')">
+                     Sample Legitimate Policy
                 </button>
-                <button class="sample-btn fraud-btn" onclick="fillId('fraud')">
-                     Sample Fraud ID
+                <button class="sample-btn fraud-btn" onclick="fillPolicy('fraud')">
+                     Sample Fraud Policy
                 </button>
             </div>
         </div>
 
-        
-        <div class="claim-details-card" id="claim-details" style="display:none">
-            <h3> Claim Details <span id="claim-id-badge"></span></h3>
-            <div class="details-grid" id="details-grid"></div>
+        <!-- Policy Info Card -->
+        <div class="form-card" id="policy-card" style="display:none">
+            <h3>👤 Patient & Policy Details</h3>
+            <div class="details-grid" id="policy-details"></div>
+
+            <!-- Past Claims -->
+            <div id="past-claims-section" style="display:none">
+                <h4 style="margin: 16px 0 10px; color:#aaa">
+                     Past Claims History
+                </h4>
+                <table class="log-table" id="past-claims-table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Amount (₹)</th>
+                            <th>Hospital</th>
+                            <th>Diagnosis</th>
+                            <th>Date</th>
+                            <th>Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody id="past-claims-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Step 2: New Claim Form -->
+        <div class="form-card" id="claim-form" style="display:none">
+            <h3> Step 2 — New Claim Details</h3>
+            <p class="form-sub">Fill in the new claim being submitted for this policy.</p>
+
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Hospital Name</label>
+                    <input type="text" id="hospital_name"
+                           placeholder="e.g. Apollo Hospital Mumbai">
+                </div>
+                <div class="form-group full">
+                    <label>Diagnosis / Treatment Type</label>
+                    <input type="text" id="diagnosis_type"
+                           placeholder="e.g. Knee Replacement Surgery">
+                </div>
+                <div class="form-group">
+                    <label>Claim Amount (₹)</label>
+                    <input type="number" id="claim_amount"
+                           placeholder="e.g. 85000">
+                </div>
+                <div class="form-group">
+                    <label>Hospital Stay Days</label>
+                    <input type="number" id="hospital_stay_days"
+                           placeholder="e.g. 5">
+                </div>
+                <div class="form-group">
+                    <label>Number of Diagnoses</label>
+                    <input type="number" id="num_diagnoses"
+                           placeholder="e.g. 2" value="2">
+                </div>
+                <div class="form-group">
+                    <label>Doctor Experience (Years)</label>
+                    <input type="number" id="doctor_experience_years"
+                           placeholder="e.g. 10" value="10">
+                </div>
+            </div>
+
             <button class="predict-btn" onclick="analyzeFraud()">
                  Analyze This Claim for Fraud
             </button>
@@ -69,10 +130,9 @@
             <table class="log-table">
                 <thead>
                     <tr>
-                        <th>Claim ID</th>
+                        <th>Policy</th>
+                        <th>Patient</th>
                         <th>Amount (₹)</th>
-                        <th>Procedures</th>
-                        <th>Stay Days</th>
                         <th>Risk Score</th>
                         <th>Verdict</th>
                         <th>Time</th>
