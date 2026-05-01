@@ -5,7 +5,7 @@ import numpy as np
 import joblib
 import tensorflow as tf
 from datetime import datetime
-from db import init_db, get_policy_by_number, save_new_claim, get_stats, get_claim
+from db import init_db, get_policy_by_number, save_new_claim, get_stats, get_claim, save_decision, get_decisions
 
 app = Flask(__name__)
 
@@ -183,6 +183,30 @@ def predict():
             'num_procedures': num_procedures
         }
     })
+
+@app.route('/decision', methods=['POST'])
+def decision():
+    data = request.json
+    
+    save_decision(
+        claim_id=data['claim_id'],
+        policy_number=data['policy_number'],
+        patient_name=data['patient_name'],
+        claim_amount=data['claim_amount'],
+        ml_verdict=data['ml_verdict'],
+        agent_decision=data['agent_decision'],
+        remarks=data.get('remarks', '')
+    )
+    
+    return jsonify({
+        'success': True,
+        'message': f"Claim {data['agent_decision']} successfully!"
+    })
+
+@app.route('/decisions', methods=['GET'])
+def decisions():
+    all_decisions = get_decisions()
+    return jsonify([dict(d) for d in all_decisions])
 
 if __name__ == '__main__':
     app.run(debug=True)
